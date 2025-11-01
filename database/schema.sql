@@ -25,3 +25,29 @@ CREATE TABLE users (
         FOREIGN KEY(role_id)
         REFERENCES roles(role_id)
 );
+
+CREATE TABLE seller_profiles (
+    profile_id SERIAL PRIMARY KEY,
+    user_id INT UNIQUE NOT NULL, -- Menghubungkan ke tabel 'users'
+    store_name VARCHAR(255),
+    store_location TEXT,
+    phone_number VARCHAR(20),
+    profile_description TEXT,
+
+    CONSTRAINT fk_user_seller
+        FOREIGN KEY(user_id)
+        REFERENCES users(user_id)
+        ON DELETE CASCADE
+);
+
+CREATE TABLE customer_profiles (
+    profile_id SERIAL PRIMARY KEY,
+    user_id INT UNIQUE NOT NULL, -- Menghubungkan ke tabel 'users'
+    shipping_address TEXT,
+    phone_number VARCHAR(20),
+
+    CONSTRAINT fk_user_customer
+        FOREIGN KEY(user_id)
+        REFERENCES users(user_id)
+        ON DELETE CASCADE
+);
