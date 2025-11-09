@@ -208,3 +208,58 @@ CREATE TABLE security_logs (
         REFERENCES users(user_id)
         ON DELETE SET NULL
 );
+
+CREATE TABLE reviews (
+    review_id SERIAL PRIMARY KEY,
+
+    livestock_id INT NOT NULL,
+
+    customer_id INT NOT NULL,
+
+    transaction_id INT NOT NULL,
+
+    rating INT NOT NULL CHECK (rating >= 1 AND rating <= 5),
+    comment TEXT,
+
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_review_livestock
+        FOREIGN KEY(livestock_id)
+        REFERENCES livestock(livestock_id)
+        ON DELETE CASCADE,
+
+    CONSTRAINT fk_review_customer
+        FOREIGN KEY(customer_id)
+        REFERENCES users(user_id)
+        ON DELETE SET NULL,
+
+    CONSTRAINT fk_review_transaction
+        FOREIGN KEY(transaction_id)
+        REFERENCES transactions(transaction_id)
+        ON DELETE SET NULL,
+
+    UNIQUE(livestock_id, transaction_id, customer_id)
+);
+
+CREATE TABLE chat_messages (
+    message_id SERIAL PRIMARY KEY,
+
+    sender_id INT NOT NULL,
+
+    recipient_id INT NOT NULL,
+
+    message_content TEXT NOT NULL,
+    is_read BOOLEAN DEFAULT false,
+
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_chat_sender
+        FOREIGN KEY(sender_id)
+        REFERENCES users(user_id)
+        ON DELETE CASCADE,
+
+    CONSTRAINT fk_chat_recipient
+        FOREIGN KEY(recipient_id)
+        REFERENCES users(user_id)
+        ON DELETE CASCADE
+);
