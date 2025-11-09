@@ -6,6 +6,7 @@ const authRoutes = require('./routes/auth');
 const profileRoutes = require('./routes/profile');
 const livestockRoutes = require('./routes/livestock');
 const transactionRoutes = require('./routes/transaction');
+const notificationRoutes = require('./routes/notification');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -23,6 +24,8 @@ app.use('/api/profile', profileRoutes);
 app.use('/api/livestock', livestockRoutes);
 
 app.use('/api/transactions', transactionRoutes);
+
+app.use('/api/notifications', notificationRoutes);
 
 app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
