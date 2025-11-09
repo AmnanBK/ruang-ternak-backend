@@ -6,6 +6,11 @@ const {
   simulatePayment
 } = require('../controllers/transactionController');
 
+const {
+  createOrUpdateShipment,
+  getShipment
+} = require('../controllers/shipmentController');
+
 const authMiddleware = require('../middleware/authMiddleware');
 const checkRole = require('../middleware/roleMiddleware');
 
@@ -17,8 +22,20 @@ router.post(
 
 router.post(
   '/:id/pay',
-  [authMiddleware, checkRole(['customer'])], // Lindungi!
+  [authMiddleware, checkRole(['customer'])],
   simulatePayment
+);
+
+router.put(
+  '/:id/shipment',
+  [authMiddleware, checkRole(['seller'])],
+  createOrUpdateShipment
+);
+
+router.get(
+  '/:id/shipment',
+  [authMiddleware, checkRole(['customer'])],
+  getShipment
 );
 
 module.exports = router;
