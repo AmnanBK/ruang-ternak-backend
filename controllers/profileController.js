@@ -18,3 +18,71 @@ exports.getMe = async (req, res) => {
         res.status(500).send('Server Error');
     }
 }
+
+exports.updateMe = async (req, res) => {
+  const userId = req.user.id;
+
+  const {
+    full_name,
+    store_name,
+    store_location,
+    profile_description,
+    shipping_address,
+    phone_number
+  } = req.body;
+
+  const client = await pool.connect();
+
+  try {
+    await client.query('BEGIN');
+
+    const userUpdateQuery = `
+      UPDATE users
+      SET full_name = COALESCE($1, full_name)
+      WHERE user_id = $2
+      RETURNING role_id
+    `;
+    const userResult = await client.query(userUpdateQuery, [full_name, userId]);
+
+    const roleId = userResult.rows[0].role_id;
+
+    const roleResult = await client.query('SELECT role_name FROM roles WHERE role_id = $1', [roleId]);
+    const roleName = roleResult.rows[0].role_name;
+
+    if (roleName === 'seller') {
+      const sellerUpsertQuery = `
+        INSERT INTO seller_profiles
+          (user_id, store_name, store_location, profile_description, phone_number)
+        VALUES ($1, $2, $3, $4, $5)
+        ON CONFLICT (user_id) DO UPDATE SET
+          store_name = COALESCE($2, seller_profiles.store_name),
+          store_location = COALESCE($3, seller_profiles.store_location),
+          profile_description = COALESCE($4, seller_profiles.profile_description),
+          phone_number = COALESCE($5, seller_profiles.phone_number)
+      `;
+      await client.query(sellerUpsertQuery, [userId, store_name, store_location, profile_description, phone_number]);
+
+    } else if (roleName === 'customer') {
+      const customerUpsertQuery = `
+        INSERT INTO customer_profiles
+          (user_id, shipping_address, phone_number)
+        VALUES ($1, $2, $3)
+        ON CONFLICT (user_id) DO UPDATE SET
+          shipping_address = COALESCE($2, customer_profiles.shipping_address),
+          phone_number = COALESCE($3, customer_profiles.phone_number)
+      `;
+      await client.query(customerUpsertQuery, [userId, shipping_address, phone_number]);
+    }
+
+    await client.query('COMMIT');
+
+    res.json({ msg: 'Profil berhasil diperbarui' });
+
+  } catch (err) {
+    await client.query('ROLLBACK');
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  } finally {
+    client.release();
+  }
+};
