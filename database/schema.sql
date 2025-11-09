@@ -120,3 +120,50 @@ CREATE TABLE transaction_items (
         REFERENCES livestock(livestock_id)
         ON DELETE SET NULL
 );
+
+-- Tipe ENUM untuk status pengiriman
+CREATE TYPE shipping_status AS ENUM ('processing', 'shipped', 'in_transit', 'delivered');
+
+CREATE TABLE shipments (
+    shipment_id SERIAL PRIMARY KEY,
+
+    transaction_id INT UNIQUE NOT NULL,
+
+    logistics_name VARCHAR(100),
+    tracking_number VARCHAR(100),
+
+    status shipping_status DEFAULT 'processing',
+
+    estimated_delivery_date DATE,
+
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_transaction_shipping
+        FOREIGN KEY(transaction_id)
+        REFERENCES transactions(transaction_id)
+        ON DELETE CASCADE
+);
+
+-- Tipe ENUM untuk jenis notifikasi
+CREATE TYPE notification_type AS ENUM ('transaction', 'shipping', 'system');
+
+CREATE TABLE notifications (
+    notification_id SERIAL PRIMARY KEY,
+
+    user_id INT NOT NULL,
+
+    message TEXT NOT NULL,
+    is_read BOOLEAN DEFAULT false,
+
+    type notification_type,
+
+    related_id INT,
+
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_user_notification
+        FOREIGN KEY(user_id)
+        REFERENCES users(user_id)
+        ON DELETE CASCADE
+);
