@@ -9,6 +9,7 @@ const transactionRoutes = require('./routes/transaction');
 const notificationRoutes = require('./routes/notification');
 const verificationRoutes = require('./routes/verification');
 const reviewRoutes = require('./routes/review');
+const chatRoutes = require('./routes/chat');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -32,6 +33,8 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/verification', verificationRoutes);
 
 app.use('/api/reviews', reviewRoutes);
+
+app.use('/api/chat', chatRoutes);
 
 app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
