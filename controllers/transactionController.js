@@ -75,3 +75,62 @@ exports.createTransaction = async (req, res) => {
     client.release();
   }
 };
+
+exports.simulatePayment = async (req, res) => {
+  const { id } = req.params;
+  const customerId = req.user.id;
+
+  const client = await pool.connect();
+
+  try {
+    await client.query('BEGIN');
+
+    const txCheck = await client.query(
+      `SELECT * FROM transactions
+       WHERE transaction_id = $1 AND customer_id = $2`,
+      [id, customerId]
+    );
+
+    if (txCheck.rows.length === 0) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ msg: 'Transaksi tidak ditemukan atau bukan milik Anda' });
+    }
+
+    if (txCheck.rows[0].status !== 'pending') {
+      await client.query('ROLLBACK');
+      return res.status(400).json({ msg: `Transaksi ini sudah ${txCheck.rows[0].status}, tidak bisa dibayar` });
+    }
+
+    await client.query(
+      "UPDATE transactions SET status = 'success' WHERE transaction_id = $1",
+      [id]
+    );
+
+    const items = await client.query(
+      "SELECT livestock_id FROM transaction_items WHERE transaction_id = $1",
+      [id]
+    );
+
+    const livestockIdsToUpdate = items.rows.map(item => item.livestock_id);
+
+    await client.query(
+      "UPDATE livestock SET status = 'sold' WHERE livestock_id = ANY($1::int[])",
+      [livestockIdsToUpdate]
+    );
+
+    await client.query('COMMIT');
+
+    res.json({
+      msg: 'Pembayaran berhasil disimulasikan',
+      transaction_id: id,
+      new_status: 'success'
+    });
+
+  } catch (err) {
+    await client.query('ROLLBACK');
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  } finally {
+    client.release();
+  }
+};
