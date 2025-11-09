@@ -51,3 +51,33 @@ CREATE TABLE customer_profiles (
         REFERENCES users(user_id)
         ON DELETE CASCADE
 );
+
+-- Tipe ENUM untuk kategori ternak
+CREATE TYPE livestock_category AS ENUM ('sapi', 'kambing', 'ayam', 'kuda');
+
+-- Tipe ENUM untuk status ketersediaan
+CREATE TYPE livestock_status AS ENUM ('available', 'sold');
+
+CREATE TABLE livestock (
+    livestock_id SERIAL PRIMARY KEY,
+
+    -- Foreign Key ke user yang merupakan seller
+    seller_id INT NOT NULL,
+
+    name VARCHAR(255) NOT NULL,
+    description TEXT,
+    price DECIMAL(10, 2) NOT NULL,
+    age_months INT,
+    category livestock_category NOT NULL,
+    image_url VARCHAR(255),
+
+    status livestock_status DEFAULT 'available',
+
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_seller
+        FOREIGN KEY(seller_id)
+        REFERENCES users(user_id)
+        ON DELETE CASCADE
+);
