@@ -167,3 +167,44 @@ CREATE TABLE notifications (
         REFERENCES users(user_id)
         ON DELETE CASCADE
 );
+
+-- Tipe ENUM untuk jenis dokumen
+CREATE TYPE document_type AS ENUM ('ktp', 'siup', 'photo_kandang', 'other');
+
+CREATE TABLE verification_documents (
+    document_id SERIAL PRIMARY KEY,
+
+    user_id INT NOT NULL,
+
+    type document_type NOT NULL,
+
+    file_url TEXT NOT NULL,
+
+    status VARCHAR(20) DEFAULT 'submitted',
+
+    uploaded_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_user_document
+        FOREIGN KEY(user_id)
+        REFERENCES users(user_id)
+        ON DELETE CASCADE
+);
+
+CREATE TABLE security_logs (
+    log_id SERIAL PRIMARY KEY,
+
+    user_id INT,
+
+    action VARCHAR(100) NOT NULL,
+
+    ip_address VARCHAR(45),
+
+    details TEXT,
+
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_user_log
+        FOREIGN KEY(user_id)
+        REFERENCES users(user_id)
+        ON DELETE SET NULL
+);
