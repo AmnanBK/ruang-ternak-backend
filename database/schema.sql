@@ -81,3 +81,42 @@ CREATE TABLE livestock (
         REFERENCES users(user_id)
         ON DELETE CASCADE
 );
+
+-- Tipe ENUM untuk status transaksi
+CREATE TYPE transaction_status AS ENUM ('pending', 'success', 'failed', 'cancelled');
+
+CREATE TABLE transactions (
+    transaction_id SERIAL PRIMARY KEY,
+
+    customer_id INT NOT NULL,
+
+    total_amount DECIMAL(12, 2) NOT NULL,
+    status transaction_status DEFAULT 'pending',
+
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_customer
+        FOREIGN KEY(customer_id)
+        REFERENCES users(user_id)
+        ON DELETE SET NULL
+);
+
+CREATE TABLE transaction_items (
+    item_id SERIAL PRIMARY KEY,
+
+    transaction_id INT NOT NULL,
+
+    livestock_id INT NOT NULL,
+
+    price_at_purchase DECIMAL(10, 2) NOT NULL,
+
+    CONSTRAINT fk_transaction
+        FOREIGN KEY(transaction_id)
+        REFERENCES transactions(transaction_id)
+        ON DELETE CASCADE,
+
+    CONSTRAINT fk_livestock_item
+        FOREIGN KEY(livestock_id)
+        REFERENCES livestock(livestock_id)
+        ON DELETE SET NULL
+);
