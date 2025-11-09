@@ -80,3 +80,80 @@ exports.getLivestockById = async (req, res) => {
     res.status(500).send('Server Error');
   }
 };
+
+exports.updateLivestock = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const sellerId = req.user.id;
+
+    const livestockCheck = await pool.query(
+      'SELECT seller_id FROM livestock WHERE livestock_id = $1',
+      [id]
+    );
+
+    if (livestockCheck.rows.length === 0) {
+      return res.status(404).json({ msg: 'Data ternak tidak ditemukan' });
+    }
+
+    if (livestockCheck.rows[0].seller_id !== sellerId) {
+      return res.status(403).json({ msg: 'Akses terlarang: Anda bukan pemilik data ini' });
+    }
+
+    const { name, description, price, age_months, category, status, image_url } = req.body;
+
+    const updateQuery = `
+      UPDATE livestock SET
+        name = COALESCE($1, name),
+        description = COALESCE($2, description),
+        price = COALESCE($3, price),
+        age_months = COALESCE($4, age_months),
+        category = COALESCE($5, category),
+        status = COALESCE($6, status),
+        image_url = COALESCE($7, image_url),
+        updated_at = CURRENT_TIMESTAMP
+      WHERE livestock_id = $8
+      RETURNING *
+    `;
+
+    const updatedLivestock = await pool.query(updateQuery, [
+      name, description, price, age_months, category, status, image_url, id
+    ]);
+
+    res.json({
+      msg: 'Data ternak berhasil diperbarui',
+      livestock: updatedLivestock.rows[0]
+    });
+
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+};
+
+exports.deleteLivestock = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const sellerId = req.user.id;
+
+    const livestockCheck = await pool.query(
+      'SELECT seller_id FROM livestock WHERE livestock_id = $1',
+      [id]
+    );
+
+    if (livestockCheck.rows.length === 0) {
+      return res.status(404).json({ msg: 'Data ternak tidak ditemukan' });
+    }
+
+    if (livestockCheck.rows[0].seller_id !== sellerId) {
+      return res.status(403).json({ msg: 'Akses terlarang: Anda bukan pemilik data ini' });
+    }
+
+    await pool.query('DELETE FROM livestock WHERE livestock_id = $1', [id]);
+
+    res.json({ msg: 'Data ternak berhasil dihapus' });
+
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+};
