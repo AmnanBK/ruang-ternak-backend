@@ -7,7 +7,7 @@ const {
   getLivestockById,
   updateLivestock,
   deleteLivestock,
-  getmyLivestock
+  getMyLivestock
 } = require('../controllers/livestockController');
 const authMiddleware = require('../middleware/authMiddleware');
 const checkRole = require('../middleware/roleMiddleware');
