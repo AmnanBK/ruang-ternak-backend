@@ -32,6 +32,26 @@ exports.createLivestock = async (req, res) => {
   }
 };
 
+exports.getMyLivestock = async (req, res) => {
+  try {
+    const sellerId = req.user.id;
+
+    const query = `
+      SELECT * FROM livestock
+      WHERE seller_id = $1
+      ORDER BY created_at DESC
+    `;
+
+    const result = await pool.query(query, [sellerId]);
+
+    res.json(result.rows);
+
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+};
+
 exports.getAllLivestock = async (req, res) => {
   try {
     const query = `

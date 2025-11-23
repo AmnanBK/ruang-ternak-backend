@@ -6,7 +6,8 @@ const {
   getAllLivestock,
   getLivestockById,
   updateLivestock,
-  deleteLivestock
+  deleteLivestock,
+  getmyLivestock
 } = require('../controllers/livestockController');
 const authMiddleware = require('../middleware/authMiddleware');
 const checkRole = require('../middleware/roleMiddleware');
@@ -15,6 +16,12 @@ router.post(
   '/',
   [authMiddleware, checkRole(['seller'])],
   createLivestock
+);
+
+router.get(
+  '/me',
+  [authMiddleware, checkRole(['seller'])],
+  getMyLivestock
 );
 
 router.get('/', getAllLivestock);
